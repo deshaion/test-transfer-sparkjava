@@ -1,7 +1,8 @@
 package com.company.transfer.handlers.common;
 
-import com.company.transfer.model.Empty;
-import com.company.transfer.model.Validable;
+import com.company.transfer.model.common.Empty;
+import com.company.transfer.model.common.ErrorMessage;
+import com.company.transfer.model.common.Validable;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -18,6 +19,7 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
     private Class<V> valueClass;
 
     private static final int HTTP_BAD_REQUEST = 400;
+    private static final int SERVER_ERROR = 500;
 
     public AbstractRequestHandler(Class<V> valueClass){
         this.valueClass = valueClass;
@@ -35,7 +37,7 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
     }
 
     @Override
-    public Object handle(Request request, Response response) throws Exception {
+    public Object handle(Request request, Response response) {
         try {
             V value = null;
             if (valueClass != Empty.class) {
@@ -51,23 +53,31 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
             response.body(answer.getBody());
             return answer.getBody();
         } catch (JsonMappingException e) {
+            String body = dataToJson(ErrorMessage.errorBuilder()
+                    .errorCode("InputParserError")
+                    .errorMessage(e.getMessage())
+                    .build());
+
             response.status(HTTP_BAD_REQUEST);
-            response.body(e.getMessage());
-            return e.getMessage();
+            response.type("application/json");
+            response.body(body);
+            return body;
         } catch (Exception e) {
-            response.status(500);
+            String body = dataToJson(ErrorMessage.errorBuilder()
+                    .errorCode("ServerError")
+                    .errorMessage(e.getMessage())
+                    .build());
+
+            response.status(SERVER_ERROR);
+            response.type("application/json");
             response.body(e.getMessage());
-            return e.getMessage();
+            return body;
         }
     }
 
     private Answer validateAndProcess(V value, Map<String, String> urlParams) {
-        Optional<ErrorMessage> errorMessage = validate(value);
-
-        if (errorMessage.isPresent()) {
-            return new Answer(HTTP_BAD_REQUEST, dataToJson(errorMessage));
-        }
-        return process(value, urlParams);
+        return validate(value).map(message -> new Answer(HTTP_BAD_REQUEST, dataToJson(message)))
+                .orElseGet(() -> process(value, urlParams));
     }
 
     private Optional<ErrorMessage> validate(V value) {

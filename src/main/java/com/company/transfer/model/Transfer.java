@@ -1,29 +1,41 @@
 package com.company.transfer.model;
 
-import com.company.transfer.handlers.common.ErrorMessage;
-import lombok.*;
+import com.company.transfer.model.common.ErrorMessage;
+import com.company.transfer.model.common.Validable;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Getter
-@Builder
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
-public class Transfer implements Validable {
+public class Transfer extends ErrorMessage implements Validable {
     private Long requestId;
     private Long sourceAccountId;
     private Long targetAccountId;
     private BigDecimal amount;
     private LocalDateTime created;
 
+    @Builder
+    public Transfer(String errorCode, String errorMessage, Long requestId, Long sourceAccountId, Long targetAccountId, BigDecimal amount, LocalDateTime created) {
+        super(errorCode, errorMessage);
+        this.requestId = requestId;
+        this.sourceAccountId = sourceAccountId;
+        this.targetAccountId = targetAccountId;
+        this.amount = amount;
+        this.created = created;
+    }
+
     @Override
     public Optional<ErrorMessage> validate() {
         if (sourceAccountId == null || sourceAccountId < 0) {
             return Optional.of(
-                    ErrorMessage.builder()
+                    ErrorMessage.errorBuilder()
                             .errorCode("emptySource")
                             .errorMessage("Source account can't be empty")
                             .build());
@@ -31,7 +43,7 @@ public class Transfer implements Validable {
 
         if (targetAccountId == null || targetAccountId < 0) {
             return Optional.of(
-                    ErrorMessage.builder()
+                    ErrorMessage.errorBuilder()
                             .errorCode("emptyTarget")
                             .errorMessage("Target account can't be empty")
                             .build());
@@ -39,7 +51,7 @@ public class Transfer implements Validable {
 
         if (targetAccountId.equals(sourceAccountId)) {
             return Optional.of(
-                    ErrorMessage.builder()
+                    ErrorMessage.errorBuilder()
                             .errorCode("SourceAndTargetTheSame")
                             .errorMessage("Source and target must be different")
                             .build());
@@ -47,7 +59,7 @@ public class Transfer implements Validable {
 
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             return Optional.of(
-                    ErrorMessage.builder()
+                    ErrorMessage.errorBuilder()
                             .errorCode("invalidAmount")
                             .errorMessage("Amount of transfer must be more than 0")
                             .build());
@@ -65,8 +77,8 @@ public class Transfer implements Validable {
 
         Transfer transfer = (Transfer) o;
 
-        if (sourceAccountId != transfer.sourceAccountId) return false;
-        if (targetAccountId != transfer.targetAccountId) return false;
+        if (!sourceAccountId.equals(transfer.sourceAccountId)) return false;
+        if (!targetAccountId.equals(transfer.targetAccountId)) return false;
         if (requestId != null ? !requestId.equals(transfer.requestId) : transfer.requestId != null) return false;
         if (amount != null ? amount.compareTo(transfer.amount) != 0 : transfer.amount != null) return false;
         return created != null ? created.equals(transfer.created) : transfer.created == null;

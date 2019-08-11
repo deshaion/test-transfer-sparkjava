@@ -3,7 +3,7 @@ package com.company.transfer.handlers;
 import com.company.transfer.dao.TransfersDAO;
 import com.company.transfer.handlers.common.AbstractRequestHandler;
 import com.company.transfer.handlers.common.Answer;
-import com.company.transfer.model.Empty;
+import com.company.transfer.model.common.Empty;
 
 import java.util.Map;
 

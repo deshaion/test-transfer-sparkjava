@@ -3,7 +3,6 @@ package com.company.transfer;
 import com.company.transfer.dao.AccountsDAO;
 import com.company.transfer.dao.impl.AccountsDAOImpl;
 import com.company.transfer.model.Account;
-import com.fasterxml.jackson.core.type.TypeReference;
 import jodd.http.HttpRequest;
 import jodd.http.HttpResponse;
 import org.junit.Before;
@@ -15,7 +14,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -39,7 +37,7 @@ public class AccountsTest extends BaseTest {
 
     @Test
     public void testAccountsCreating() throws IOException {
-        HttpResponse response = HttpRequest.post("http://localhost:3000/accounts").body("{\"name\":\"Peter\", \"balance\":\"100\"}").send();
+        Account account = createAccount("Peter", 100);
 
         Account expectedAccount = Account.builder()
                 .id(0L)
@@ -48,11 +46,9 @@ public class AccountsTest extends BaseTest {
                 .active(true)
                 .build();
 
-        assertThat(response.statusCode(), is(200));
-        assertThat(response.contentType(), is("application/json"));
-        assertThat(readAccount(response.body()), is(expectedAccount));
+        assertThat(accountWithoutCreatedDate(account), is(expectedAccount));
 
-        response = HttpRequest.get("http://localhost:3000/accounts").send();
+        HttpResponse response = HttpRequest.get(API_ACCOUNTS).send();
 
         List<Account> expectedList = new ArrayList<>();
         expectedList.add(expectedAccount);
@@ -64,7 +60,7 @@ public class AccountsTest extends BaseTest {
 
     @Test
     public void testGetEmptyListOfAccounts() throws IOException {
-        HttpResponse response = HttpRequest.get("http://localhost:3000/accounts").send();
+        HttpResponse response = HttpRequest.get(API_ACCOUNTS).send();
 
         assertThat(response.statusCode(), is(200));
         assertThat(response.contentType(), is("application/json"));
@@ -73,36 +69,16 @@ public class AccountsTest extends BaseTest {
 
     @Test
     public void postEmpty() {
-        HttpResponse response = HttpRequest.post("http://localhost:3000/accounts").body("{}").send();
+        HttpResponse response = HttpRequest.post(API_ACCOUNTS).body("{}").send();
 
         assertThat(response.statusCode(), is(400));
     }
 
     @Test
     public void postWrongBalance() {
-        HttpResponse response = HttpRequest.post("http://localhost:3000/accounts").body("{\"name\":\"Peter\", \"balance\":\"balance\"}").send();
+        HttpResponse response = HttpRequest.post(API_ACCOUNTS).body("{\"name\":\"Peter\", \"balance\":\"balance\"}").send();
 
         assertThat(response.statusCode(), is(400));
     }
 
-    private Account readAccount(String json) throws IOException {
-        Account account = objectMapper.readValue(json, Account.class);
-
-        return accountWithoutCreatedDate(account);
-    }
-
-    private List<Account> readAccountList(String json) throws IOException {
-        List<Account> accountList = objectMapper.readValue(json, new TypeReference<List<Account>>() {});
-
-        return accountList.stream().map(this::accountWithoutCreatedDate).collect(Collectors.toList());
-    }
-
-    private Account accountWithoutCreatedDate(Account account) {
-        return Account.builder()
-                .id(account.getId())
-                .name(account.getName())
-                .balance(account.getBalance())
-                .active(account.getActive())
-                .build();
-    }
 }

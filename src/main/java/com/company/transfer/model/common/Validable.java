@@ -1,6 +1,4 @@
-package com.company.transfer.model;
-
-import com.company.transfer.handlers.common.ErrorMessage;
+package com.company.transfer.model.common;
 
 import java.util.Optional;
 
