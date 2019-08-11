@@ -32,7 +32,7 @@ public class AccountsTest extends BaseTest {
 
     @Before
     public void beforeTest() {
-        accountsDAO.deleteAll();
+        accountsDAO.hardDeleteAll();
     }
 
     @Test
@@ -53,7 +53,7 @@ public class AccountsTest extends BaseTest {
         List<Account> expectedList = new ArrayList<>();
         expectedList.add(expectedAccount);
 
-        assertThat(response.statusCode(), is(200));
+        assertThat(response.statusCode(), is(201));
         assertThat(response.contentType(), is("application/json"));
         assertThat(readAccountList(response.body()), is(expectedList));
     }

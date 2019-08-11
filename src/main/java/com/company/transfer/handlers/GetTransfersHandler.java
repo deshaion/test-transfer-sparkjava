@@ -19,6 +19,6 @@ public class GetTransfersHandler extends AbstractRequestHandler<Empty> {
 
     @Override
     public Answer process(Empty value, Map<String, String> urlParams) {
-        return Answer.ok(dataToJson(transfersDAO.getAll()));
+        return Answer.ok(transfersDAO.getAll());
     }
 }

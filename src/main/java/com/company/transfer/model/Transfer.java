@@ -15,15 +15,17 @@ import java.util.Optional;
 @ToString
 @NoArgsConstructor
 public class Transfer extends ErrorMessage implements Validable {
-    private Long requestId;
+    private Long id;
+    private String requestId;
     private Long sourceAccountId;
     private Long targetAccountId;
     private BigDecimal amount;
     private LocalDateTime created;
 
     @Builder
-    public Transfer(String errorCode, String errorMessage, Long requestId, Long sourceAccountId, Long targetAccountId, BigDecimal amount, LocalDateTime created) {
+    public Transfer(String errorCode, String errorMessage, Long id, String requestId, Long sourceAccountId, Long targetAccountId, BigDecimal amount, LocalDateTime created) {
         super(errorCode, errorMessage);
+        this.id = id;
         this.requestId = requestId;
         this.sourceAccountId = sourceAccountId;
         this.targetAccountId = targetAccountId;
@@ -69,6 +71,8 @@ public class Transfer extends ErrorMessage implements Validable {
     }
 
     // Don't forget after generating equals method that for comparing BigDecimal values is better to use compareTo method
+    //if (amount != null ? amount.compareTo(transfer.amount) != 0 : transfer.amount != null) return false;
+
 
     @Override
     public boolean equals(Object o) {
@@ -77,21 +81,14 @@ public class Transfer extends ErrorMessage implements Validable {
 
         Transfer transfer = (Transfer) o;
 
-        if (!sourceAccountId.equals(transfer.sourceAccountId)) return false;
-        if (!targetAccountId.equals(transfer.targetAccountId)) return false;
+        if (id != null ? !id.equals(transfer.id) : transfer.id != null) return false;
         if (requestId != null ? !requestId.equals(transfer.requestId) : transfer.requestId != null) return false;
+        if (sourceAccountId != null ? !sourceAccountId.equals(transfer.sourceAccountId) : transfer.sourceAccountId != null)
+            return false;
+        if (targetAccountId != null ? !targetAccountId.equals(transfer.targetAccountId) : transfer.targetAccountId != null)
+            return false;
         if (amount != null ? amount.compareTo(transfer.amount) != 0 : transfer.amount != null) return false;
         return created != null ? created.equals(transfer.created) : transfer.created == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = requestId != null ? requestId.hashCode() : 0;
-        result = 31 * result + (int) (sourceAccountId ^ (sourceAccountId >>> 32));
-        result = 31 * result + (int) (targetAccountId ^ (targetAccountId >>> 32));
-        result = 31 * result + (amount != null ? amount.hashCode() : 0);
-        result = 31 * result + (created != null ? created.hashCode() : 0);
-        return result;
     }
 
 }

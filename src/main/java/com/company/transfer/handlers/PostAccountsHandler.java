@@ -18,6 +18,6 @@ public class PostAccountsHandler extends AbstractRequestHandler<Account> {
 
     @Override
     public Answer process(Account value, Map<String, String> urlParams) {
-        return Answer.ok(dataToJson(accountsDAO.insert(value)));
+        return Answer.created(accountsDAO.insert(value));
     }
 }

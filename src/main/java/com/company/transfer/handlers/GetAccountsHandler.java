@@ -18,6 +18,6 @@ public class GetAccountsHandler extends AbstractRequestHandler<Empty> {
 
     @Override
     public Answer process(Empty value, Map<String, String> urlParams) {
-        return Answer.ok(dataToJson(accountsDAO.getAll()));
+        return Answer.ok(accountsDAO.getAll());
     }
 }

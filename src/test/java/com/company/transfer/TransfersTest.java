@@ -30,8 +30,8 @@ public class TransfersTest extends BaseTest {
 
     @Before
     public void beforeTest() {
-        accountsDAO.deleteAll();
-        transfersDAO.deleteAll();
+        accountsDAO.hardDeleteAll();
+        transfersDAO.hardDeleteAll();
     }
 
     @Test
@@ -88,5 +88,30 @@ public class TransfersTest extends BaseTest {
 
         assertThat(transfer.getErrorCode(), is("invalidAmount"));
         assertThat(transfer.getErrorMessage(), is("Amount of transfer must be more than 0"));
+    }
+
+    @Test
+    public void checkDuplication() throws IOException {
+
+    }
+
+    @Test
+    public void sourceAccountNotFound() throws IOException {
+
+    }
+
+    @Test
+    public void targetAccountNotFound() throws IOException {
+
+    }
+
+    @Test
+    public void checkNotEnoughMoney() throws IOException {
+
+    }
+
+    @Test
+    public void checkDeadLock() throws IOException {
+
     }
 }

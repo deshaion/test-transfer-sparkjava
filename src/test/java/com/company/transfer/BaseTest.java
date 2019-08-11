@@ -65,11 +65,11 @@ abstract class BaseTest {
     Account createAccount(String name, BigDecimal balance) throws IOException {
         HttpResponse response = HttpRequest.post(API_ACCOUNTS).body("{\"name\":\"" + name + "\", \"balance\":\"" + balance.toString() + "\"}").send();
 
-        if (response.statusCode() != 200) {
+        if (response.statusCode() != 201) {
             System.out.println(response);
         }
 
-        assertThat(response.statusCode(), is(200));
+        assertThat(response.statusCode(), is(201));
         assertThat(response.contentType(), is("application/json"));
 
         return objectMapper.readValue(response.body(), Account.class);

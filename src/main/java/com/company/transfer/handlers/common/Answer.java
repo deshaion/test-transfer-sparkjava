@@ -1,15 +1,23 @@
 package com.company.transfer.handlers.common;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-@Builder @Getter @ToString
+@Getter @ToString
 public class Answer {
     private int code;
-    private String body;
+    private Object body;
 
-    public static Answer ok(String body) {
-        return Answer.builder().code(200).body(body).build();
+    public Answer(int code, Object body) {
+        this.code = code;
+        this.body = body;
+    }
+
+    public static Answer ok(Object body) {
+        return new Answer(200, body);
+    }
+
+    public static Answer created(Object body) {
+        return new Answer(201, body);
     }
 }

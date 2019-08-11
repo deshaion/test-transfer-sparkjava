@@ -15,25 +15,14 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+
 public abstract class AbstractRequestHandler<V extends Validable> implements RequestHandler<V>, Route {
     private Class<V> valueClass;
 
-    private static final int HTTP_BAD_REQUEST = 400;
-    private static final int SERVER_ERROR = 500;
-
     public AbstractRequestHandler(Class<V> valueClass){
         this.valueClass = valueClass;
-    }
-
-    public static String dataToJson(Object data) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            return mapper.writeValueAsString(data);
-        } catch (IOException e){
-            throw new RuntimeException("", e);
-        }
     }
 
     @Override
@@ -50,8 +39,8 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
 
             response.status(answer.getCode());
             response.type("application/json");
-            response.body(answer.getBody());
-            return answer.getBody();
+            response.body(dataToJson(answer.getBody()));
+            return response.body();
         } catch (JsonMappingException e) {
             String body = dataToJson(ErrorMessage.errorBuilder()
                     .errorCode("InputParserError")
@@ -68,7 +57,7 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
                     .errorMessage(e.getMessage())
                     .build());
 
-            response.status(SERVER_ERROR);
+            response.status(HTTP_INTERNAL_ERROR);
             response.type("application/json");
             response.body(e.getMessage());
             return body;
@@ -76,7 +65,7 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
     }
 
     private Answer validateAndProcess(V value, Map<String, String> urlParams) {
-        return validate(value).map(message -> new Answer(HTTP_BAD_REQUEST, dataToJson(message)))
+        return validate(value).map(message -> new Answer(HTTP_BAD_REQUEST, message))
                 .orElseGet(() -> process(value, urlParams));
     }
 
@@ -85,5 +74,16 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
             return Optional.empty();
         }
         return value.validate();
+    }
+
+    private static String dataToJson(Object data) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            return mapper.writeValueAsString(data);
+        } catch (IOException e){
+            throw new RuntimeException("", e);
+        }
     }
 }
