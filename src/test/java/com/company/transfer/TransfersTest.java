@@ -11,6 +11,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
@@ -145,10 +151,54 @@ public class TransfersTest extends BaseTest {
     }
 
     @Test
-    public void checkDeadLock() throws IOException {
-        Account accountA = createAccount("Peter", 100);
-        Account accountB = createAccount("Lucas", 50);
+    public void checkDeadLock() throws IOException, InterruptedException {
+        Account accountA = createAccount("Peter", 1000);
+        Account accountB = createAccount("Lucas", 500);
 
-        Transfer transfer = createTransfer("req_1", accountA, accountB, 200, HTTP_BAD_REQUEST);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+
+        Random random = new Random();
+
+        AtomicInteger balanceA = new AtomicInteger(1000);
+        AtomicInteger balanceB = new AtomicInteger(500);
+
+        AtomicInteger reqId = new AtomicInteger(0);
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        for (int i = 0; i < 20; i++) {
+            executorService.submit(() -> {
+                try {
+                    int amount = 1 + random.nextInt(5);
+                    Account firstAcc;
+                    Account secondAcc;
+
+                    if (random.nextBoolean()) {
+                        firstAcc = accountA;
+                        secondAcc = accountB;
+
+                        balanceA.updateAndGet(x -> x - amount);
+                        balanceB.updateAndGet(x -> x + amount);
+                    } else {
+                        firstAcc = accountB;
+                        secondAcc = accountA;
+
+                        balanceA.updateAndGet(x -> x + amount);
+                        balanceB.updateAndGet(x -> x - amount);
+                    }
+
+                    countDownLatch.await();
+                    createTransfer(String.valueOf(reqId.getAndIncrement()), firstAcc, secondAcc, amount, HTTP_CREATED);
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        countDownLatch.countDown();
+        executorService.shutdown();
+        executorService.awaitTermination(5, TimeUnit.MINUTES);
+
+        checkBalance(accountA, balanceA.get());
+        checkBalance(accountB, balanceB.get());
     }
 }
