@@ -30,7 +30,7 @@ public class TransfersDAOImpl implements TransfersDAO {
 
 
     private void initTables() {
-        final String createTransfer = "CREATE TABLE Transfer\n" +
+        final String createTransfer = "CREATE TABLE IF NOT EXISTS Transfer\n" +
                 "(\n" +
                 "    transferId INT PRIMARY KEY IDENTITY,\n" +
                 "    requestId VARCHAR(64) NOT NULL,\n" +
@@ -88,7 +88,7 @@ public class TransfersDAOImpl implements TransfersDAO {
     @Override
     public boolean isTransferExist(String requestId) {
         try (Connection conn = sql2o.open()) {
-            return conn.createQuery("SELECT transferId FROM Transfer WHERE requestId = :requestId")
+            return conn.createQuery("SELECT COUNT(transferId) FROM Transfer WHERE requestId = :requestId")
                     .addParameter("requestId", requestId)
                     .executeAndFetchFirst(Boolean.class);
         }

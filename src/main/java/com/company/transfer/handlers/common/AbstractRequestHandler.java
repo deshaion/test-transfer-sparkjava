@@ -28,6 +28,11 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
     @Override
     public Object handle(Request request, Response response) {
         try {
+            if ("application/json".equals(request.contentType())) {
+                setErrorInResponse(response, HTTP_BAD_REQUEST, "WrongContentType", "Only application/json content type is allowed.");
+                return response.body();
+            }
+
             V value = null;
             if (valueClass != Empty.class) {
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -42,26 +47,23 @@ public abstract class AbstractRequestHandler<V extends Validable> implements Req
             response.body(dataToJson(answer.getBody()));
             return response.body();
         } catch (JsonMappingException e) {
-            String body = dataToJson(ErrorMessage.errorBuilder()
-                    .errorCode("InputParserError")
-                    .errorMessage(e.getMessage())
-                    .build());
-
-            response.status(HTTP_BAD_REQUEST);
-            response.type("application/json");
-            response.body(body);
-            return body;
+            setErrorInResponse(response, HTTP_BAD_REQUEST, "InputDataParserError", e.getMessage());
+            return response.body();
         } catch (Exception e) {
-            String body = dataToJson(ErrorMessage.errorBuilder()
-                    .errorCode("ServerError")
-                    .errorMessage(e.getMessage())
-                    .build());
-
-            response.status(HTTP_INTERNAL_ERROR);
-            response.type("application/json");
-            response.body(e.getMessage());
-            return body;
+            setErrorInResponse(response, HTTP_INTERNAL_ERROR, "ServerError", e.getMessage());
+            return response.body();
         }
+    }
+
+    private void setErrorInResponse(Response response, int status, String errorCode, String errorMessage) {
+        String body = dataToJson(ErrorMessage.errorBuilder()
+                .errorCode(errorCode)
+                .errorMessage(errorMessage)
+                .build());
+
+        response.status(status);
+        response.type("application/json");
+        response.body(body);
     }
 
     private Answer validateAndProcess(V value, Map<String, String> urlParams) {

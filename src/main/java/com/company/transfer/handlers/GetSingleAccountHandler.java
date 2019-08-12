@@ -5,6 +5,7 @@ import com.company.transfer.handlers.common.AbstractRequestHandler;
 import com.company.transfer.handlers.common.Answer;
 import com.company.transfer.model.Account;
 import com.company.transfer.model.common.Empty;
+import com.company.transfer.model.common.ErrorMessage;
 
 import java.util.Map;
 import java.util.Optional;
@@ -30,10 +31,9 @@ public class GetSingleAccountHandler extends AbstractRequestHandler<Empty> {
 
         Optional<Account> account = accountsDAO.getAccount(id);
 
-        if (!account.isPresent()) {
-            return new Answer(HTTP_NOT_FOUND, account);
-        }
+        return account.map(Answer::ok).
+                orElseGet(() -> new Answer(HTTP_NOT_FOUND,
+                        new ErrorMessage("accountNotFound", "Account with ID " + id + " is not found.")));
 
-        return Answer.ok(account);
     }
 }

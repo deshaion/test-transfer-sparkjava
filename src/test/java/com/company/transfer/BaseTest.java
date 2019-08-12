@@ -75,10 +75,25 @@ abstract class BaseTest {
         return objectMapper.readValue(response.body(), Account.class);
     }
 
+    Account getAccount(long id) throws IOException {
+        HttpResponse response = HttpRequest.get(API_ACCOUNTS + "/" + id).send();
+
+        if (response.statusCode() != 200) {
+            System.out.println(response);
+        }
+
+        assertThat(response.statusCode(), is(200));
+        assertThat(response.contentType(), is("application/json"));
+
+        return objectMapper.readValue(response.body(), Account.class);
+    }
+
     Transfer createTransfer(String body, int expectedStatusCode) throws IOException {
         HttpResponse response = HttpRequest.post(API_TRANSFERS).body(body).send();
 
-        System.out.println(response);
+        if (response.statusCode() != expectedStatusCode) {
+            System.out.println(response);
+        }
 
         assertThat(response.statusCode(), is(expectedStatusCode));
         assertThat(response.contentType(), is("application/json"));
@@ -86,13 +101,20 @@ abstract class BaseTest {
         return objectMapper.readValue(response.body(), Transfer.class);
     }
 
-    Transfer createTransfer(Account accountA, Account accountB, int amount, int expectedStatusCode) throws IOException {
-        return createTransfer(accountA, accountB, BigDecimal.valueOf(amount), expectedStatusCode);
+    Transfer createTransfer(String requestId, Account accountA, Account accountB, int amount, int expectedStatusCode) throws IOException {
+        return createTransfer(requestId, accountA, accountB, BigDecimal.valueOf(amount), expectedStatusCode);
     }
 
-    Transfer createTransfer(Account accountA, Account accountB, BigDecimal amount, int expectedStatusCode) throws IOException {
-        return createTransfer("{\"sourceAccountId\":\"" + accountA.getId() + "\", " +
-                "\"targetAccountId\":\"" + accountB.getId() + "\", \"amount\":\"" + amount.toString() + "\"}", expectedStatusCode);
+    Transfer createTransfer(String requestId, Account accountA, Account accountB, BigDecimal amount, int expectedStatusCode) throws IOException {
+        return createTransfer("{\"requestId\":\"" + requestId + "\", " +
+                "\"sourceAccountId\":\"" + accountA.getId() + "\", " +
+                "\"targetAccountId\":\"" + accountB.getId() + "\", " +
+                "\"amount\":\"" + amount.toString() + "\"}", expectedStatusCode);
 
+    }
+
+    void checkBalance(Account account, long expectedBalance) throws IOException {
+        Account accountFromServer = getAccount(account.getId());
+        assertThat(accountFromServer.getBalance().compareTo(BigDecimal.valueOf(expectedBalance)), is(0));
     }
 }

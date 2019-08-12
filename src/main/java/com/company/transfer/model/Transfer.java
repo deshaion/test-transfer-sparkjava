@@ -35,6 +35,13 @@ public class Transfer extends ErrorMessage implements Validable {
 
     @Override
     public Optional<ErrorMessage> validate() {
+        if (requestId == null || requestId.isEmpty()) {
+            return Optional.of(
+                    ErrorMessage.errorBuilder()
+                            .errorCode("emptyRequestId")
+                            .errorMessage("Request ID parameter can't be empty for avoiding duplication")
+                            .build());
+        }
         if (sourceAccountId == null || sourceAccountId < 0) {
             return Optional.of(
                     ErrorMessage.errorBuilder()

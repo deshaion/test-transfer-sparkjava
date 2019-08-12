@@ -26,7 +26,9 @@ public class TransferProcessorImpl implements TransferProcessor {
 
     @Override
     public Answer process() throws Exception {
-        try (TransferLock lock = new TransferLockImpl(transfer)) {
+        try (TransferLock transferLock = new TransferLockImpl(transfer)) {
+            transferLock.lock();
+
             if (!findSource() || !findTarget()) {
                 return answer;
             }
