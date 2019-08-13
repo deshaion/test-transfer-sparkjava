@@ -63,7 +63,7 @@ abstract class BaseTest {
     }
 
     Account createAccount(String name, BigDecimal balance) throws IOException {
-        HttpResponse response = HttpRequest.post(API_ACCOUNTS).body("{\"name\":\"" + name + "\", \"balance\":\"" + balance.toString() + "\"}").send();
+        HttpResponse response = HttpRequest.post(API_ACCOUNTS).contentTypeJson().body("{\"name\":\"" + name + "\", \"balance\":\"" + balance.toString() + "\"}").send();
 
         if (response.statusCode() != 201) {
             System.out.println(response);
@@ -76,7 +76,7 @@ abstract class BaseTest {
     }
 
     Account getAccount(long id) throws IOException {
-        HttpResponse response = HttpRequest.get(API_ACCOUNTS + "/" + id).send();
+        HttpResponse response = HttpRequest.get(API_ACCOUNTS + "/" + id).contentTypeJson().send();
 
         if (response.statusCode() != 200) {
             System.out.println(response);
@@ -89,7 +89,7 @@ abstract class BaseTest {
     }
 
     Transfer createTransfer(String body, int expectedStatusCode) throws IOException {
-        HttpResponse response = HttpRequest.post(API_TRANSFERS).body(body).send();
+        HttpResponse response = HttpRequest.post(API_TRANSFERS).contentTypeJson().body(body).send();
 
         if (response.statusCode() != expectedStatusCode) {
             System.out.println(response);

@@ -48,7 +48,7 @@ public class AccountsTest extends BaseTest {
 
         assertThat(accountWithoutCreatedDate(account), is(expectedAccount));
 
-        HttpResponse response = HttpRequest.get(API_ACCOUNTS).send();
+        HttpResponse response = HttpRequest.get(API_ACCOUNTS).contentTypeJson().send();
 
         List<Account> expectedList = new ArrayList<>();
         expectedList.add(expectedAccount);
@@ -60,7 +60,7 @@ public class AccountsTest extends BaseTest {
 
     @Test
     public void testGetEmptyListOfAccounts() throws IOException {
-        HttpResponse response = HttpRequest.get(API_ACCOUNTS).send();
+        HttpResponse response = HttpRequest.get(API_ACCOUNTS).contentTypeJson().send();
 
         assertThat(response.statusCode(), is(200));
         assertThat(response.contentType(), is("application/json"));
@@ -69,14 +69,14 @@ public class AccountsTest extends BaseTest {
 
     @Test
     public void postEmpty() {
-        HttpResponse response = HttpRequest.post(API_ACCOUNTS).body("{}").send();
+        HttpResponse response = HttpRequest.post(API_ACCOUNTS).contentTypeJson().body("{}").send();
 
         assertThat(response.statusCode(), is(400));
     }
 
     @Test
     public void postWrongBalance() {
-        HttpResponse response = HttpRequest.post(API_ACCOUNTS).body("{\"name\":\"Peter\", \"balance\":\"balance\"}").send();
+        HttpResponse response = HttpRequest.post(API_ACCOUNTS).contentTypeJson().body("{\"name\":\"Peter\", \"balance\":\"balance\"}").send();
 
         assertThat(response.statusCode(), is(400));
     }

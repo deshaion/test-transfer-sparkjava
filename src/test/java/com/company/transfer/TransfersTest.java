@@ -147,7 +147,7 @@ public class TransfersTest extends BaseTest {
         Transfer transfer = createTransfer("req_1", accountA, accountB, 200, HTTP_BAD_REQUEST);
 
         assertThat(transfer.getErrorCode(), is("NotEnoughMoney"));
-        assertThat(transfer.getErrorMessage(), is("Account 0 has no enough money on the balance"));
+        assertThat(transfer.getErrorMessage(), is("Account " + accountA.getId() + " has no enough money on the balance"));
     }
 
     @Test
