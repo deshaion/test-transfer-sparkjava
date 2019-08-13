@@ -1,5 +1,5 @@
 # The task from customer
-Design and implement a RESTful API (including data com.company.transfer.model and the backing implementation) for money transfers between accounts.
+Design and implement a RESTful API (including data model and the backing implementation) for money transfers between accounts.
 
 Explicit requirements:
 1. You can use Java or Kotlin.
